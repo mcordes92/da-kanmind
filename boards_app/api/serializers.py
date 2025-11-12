@@ -21,6 +21,8 @@ class BoardListSerializer(serializers.ModelSerializer):
             'owner_id'
         ]
 
+    # TODO: TASKS COUNT IMPLEMENTIEREN
+
     def get_member_count(self, obj):
         return obj.members.count()
 

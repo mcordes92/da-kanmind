@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, views
 from .serializers import BoardListSerializer, BoardCreateSerializer, BoardDetailSerializer, BoardUpdateSerializer, BoardUpdateResSerializer
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
@@ -55,3 +55,24 @@ class BoardsViewSet(viewsets.ModelViewSet):
 
         board.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+      
+class EmailCheck(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        email = request.query_params.get('email')
+
+        if not email:
+            return Response({"detail": "E-Mail-Parameter fehlt."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            user = User.objects.get(email=email)
+            fullname = user.profile.full_name
+
+            return Response({
+                "id": user.id,
+                "email": user.email,
+                "fullname": fullname
+            })
+        except User.DoesNotExist:
+            return Response({"detail": "Benutzer mit dieser E-Mail existiert nicht."}, status=status.HTTP_404_NOT_FOUND)
