@@ -6,7 +6,7 @@ from boards_app.models import Boards
 from rest_framework.response import Response
 from rest_framework import status
 
-from .permissions import IsBoardMemberOrOwner, IsBoardOwner
+from .permissions import IsBoardMemberOrOwner
 
 class BoardsViewSet(viewsets.ModelViewSet):
     queryset = Boards.objects.all()
@@ -50,8 +50,6 @@ class BoardsViewSet(viewsets.ModelViewSet):
 
         if board.owner != request.user:
             return Response({"detail": "Nur der Eigentümer darf dieses Board löschen."}, status=status.HTTP_403_FORBIDDEN)
-
-        # TODO: Task delete einbauen
 
         board.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

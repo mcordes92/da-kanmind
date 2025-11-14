@@ -30,3 +30,22 @@ class TaskViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, mixins.Destr
 
 class TaskCommentViewSet(viewsets.ModelViewSet):
     pass
+
+class TaskAssignedOrReviewingSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TaskSerializer
+
+    mode = None
+
+    def get_dispatch(self, request, *args, **kwargs):
+        if "mode" in kwargs:
+            self.mode = kwargs.pop("mode")
+        return super().get_dispatch(request, *args, **kwargs)
+    
+    def get_queryset(self):
+        qs = Tasks.objects.all()
+        if self.mode == "assigned-to-me":
+            qs = qs.filter(assignee=self.request.user)
+        elif self.mode == "reviewing":
+            qs = qs.filter(reviewer=self.request.user)
+        return qs

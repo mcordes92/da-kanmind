@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from boards_app.models import Boards
+from tasks_app.models import Tasks
+from tasks_app.api.serializers import TaskSerializer
 from django.contrib.auth.models import User
 
 class BoardListSerializer(serializers.ModelSerializer):
@@ -21,22 +23,17 @@ class BoardListSerializer(serializers.ModelSerializer):
             'owner_id'
         ]
 
-    # TODO: TASKS COUNT IMPLEMENTIEREN
-
     def get_member_count(self, obj):
         return obj.members.count()
 
     def get_ticket_count(self, obj):
-        #return obj.tasks.count()
-        return 0
+        return Tasks.objects.filter(board=obj).count()
 
     def get_tasks_to_do_count(self, obj):
-        #return obj.tasks.filter(status='to-do').count()
-        return 0
+        return Tasks.objects.filter(board=obj, status='to-do').count()
 
     def get_tasks_high_prio_count(self, obj):
-        #return obj.tasks.filter(priority='high').count()
-        return 0
+        return Tasks.objects.filter(board=obj, priority='high').count()
     
 class BoardCreateSerializer(serializers.ModelSerializer):
     members = serializers.ListField(
@@ -69,13 +66,16 @@ class UserSerializer(serializers.ModelSerializer):
 class BoardDetailSerializer(serializers.ModelSerializer):
     owner_id = serializers.ReadOnlyField(source='owner.id')
     members = UserSerializer(many=True, read_only=True)
-    tasks = []  # Placeholder for tasks serialization
-
-    # TODO: Hier noch die Task mit aufnehmen!
+    tasks = serializers.SerializerMethodField()
 
     class Meta:
         model = Boards
-        fields = ['id', 'title', 'owner_id', 'members']
+        fields = ['id', 'title', 'owner_id', 'members', 'tasks']
+
+    def get_tasks(self, obj):
+        qs = Tasks.objects.filter(board=obj)
+        tasks = TaskSerializer(qs, many=True).data
+        return tasks
 
 class BoardUpdateSerializer(serializers.ModelSerializer):
     members = serializers.ListField(
