@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from boards_app.models import Boards
-from tasks_app.models import Tasks
+from tasks_app.models import Tasks, TaskComments
 from django.contrib.auth.models import User
 
 class UserSerializer(serializers.ModelSerializer):
@@ -27,8 +27,7 @@ class TaskSerializer(serializers.ModelSerializer):
         fields = ['id', 'board', 'title', 'description', 'status', 'priority', 'assignee', 'reviewer', 'due_date', 'comments_count', 'assignee_id', 'reviewer_id']
 
     def get_comments_count(self, obj):
-        #return obj.comments.count() TODO: COMMENTS IMPLEMENTIEREN, comments_count bei Patch entfernen
-        return 0
+        return obj.comments.count()
     
     def validate(self, value):
         board = self._get_board(value)
@@ -48,3 +47,16 @@ class TaskSerializer(serializers.ModelSerializer):
     def _prevent_board_change(self, value):
         if self.instance and 'board' in value and value['board'] != self.instance.board:
             raise serializers.ValidationError("Das Board eines Tasks kann nicht geändert werden.")
+        
+class TaskCommentSerializer(serializers.ModelSerializer):
+    content = serializers.CharField()
+    author = serializers.CharField(source='author.profile.full_name', read_only=True)
+
+    class Meta:
+        model = TaskComments
+        fields = ['id', 'created_at', 'author', 'content']
+
+    def validate(self, value):
+        if not value.get('content').strip():
+            raise serializers.ValidationError("Der Kommentarinhalt darf nicht leer sein.")
+        return value

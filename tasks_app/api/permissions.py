@@ -39,3 +39,8 @@ class IsTaskOwner(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         return obj.assignee_id == request.user
+    
+class IsTaskCommentAuthor(BasePermission):
+
+    def has_object_permission(self, request, view, obj):
+        return obj.author == request.user
