@@ -22,7 +22,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
     
     def validate_fullname(self, value):
         slug = slugify(value)
-        print(f"Generated slug: {slug}")
         if User.objects.filter(username=slug).exists():
             raise serializers.ValidationError('A user with a similar name already exists')
         return value

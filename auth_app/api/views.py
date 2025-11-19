@@ -6,7 +6,6 @@ from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import status
 
-
 class RegistrationView(generics.CreateAPIView):
     serializer_class = RegistrationSerializer
     permission_classes = [AllowAny]
@@ -28,8 +27,6 @@ class RegistrationView(generics.CreateAPIView):
         }
 
         return Response(response_data, status=status.HTTP_201_CREATED)
-
-
 
 class LoginView(mixins.ListModelMixin, generics.GenericAPIView):
     serializer_class = LoginSerializer
