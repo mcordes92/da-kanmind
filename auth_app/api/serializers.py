@@ -1,7 +1,8 @@
-from rest_framework import serializers
 from django.contrib.auth.models import User
-from auth_app.models import Profile
 from django.utils.text import slugify
+from rest_framework import serializers
+
+from auth_app.models import Profile
 
 class RegistrationSerializer(serializers.ModelSerializer):
     fullname = serializers.CharField(max_length=100, write_only=True)

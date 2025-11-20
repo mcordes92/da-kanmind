@@ -1,4 +1,5 @@
 from rest_framework.permissions import BasePermission
+
 from boards_app.models import Boards
 from tasks_app.models import Tasks
 

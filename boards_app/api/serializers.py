@@ -1,8 +1,9 @@
-from rest_framework import serializers
-from boards_app.models import Boards
-from tasks_app.models import Tasks
-from tasks_app.api.serializers import TaskSerializer
 from django.contrib.auth.models import User
+from rest_framework import serializers
+
+from ..models import Boards
+from tasks_app.api.serializers import TaskSerializer
+from tasks_app.models import Tasks
 
 class BoardListSerializer(serializers.ModelSerializer):
     member_count = serializers.SerializerMethodField()
@@ -93,7 +94,7 @@ class BoardUpdateSerializer(serializers.ModelSerializer):
 
         if missing_ids:
             raise serializers.ValidationError(
-                f"Ungültige Benutzer-IDs: {', '.join(map(str, missing_ids))}"
+                f"invalid user ids: {', '.join(map(str, missing_ids))}"
             )
         return value
     

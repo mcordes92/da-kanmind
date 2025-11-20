@@ -1,9 +1,5 @@
-from django.db import models
 from django.contrib.auth.models import User
-
-"""
-Models for the boards application.
-"""
+from django.db import models
 
 class Boards(models.Model):
     title = models.CharField(max_length=255)

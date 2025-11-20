@@ -1,7 +1,7 @@
-from rest_framework import serializers
-from boards_app.models import Boards
-from tasks_app.models import Tasks, TaskComments
 from django.contrib.auth.models import User
+from rest_framework import serializers
+
+from ..models import Tasks, TaskComments
 
 class UserSerializer(serializers.ModelSerializer):
     fullname = serializers.SerializerMethodField()
@@ -42,11 +42,11 @@ class TaskSerializer(serializers.ModelSerializer):
     
     def _validate_user(self, user, board, role):
         if user and user not in board.members.all():
-            raise serializers.ValidationError(f"Der {role} muss Mitglied des Boards sein.")
+            raise serializers.ValidationError(f"The {role} must be a member of the board.")
         
     def _prevent_board_change(self, value):
         if self.instance and 'board' in value and value['board'] != self.instance.board:
-            raise serializers.ValidationError("Das Board eines Tasks kann nicht geändert werden.")
+            raise serializers.ValidationError("The board of a task cannot be changed.")
         
 class TaskCommentSerializer(serializers.ModelSerializer):
     content = serializers.CharField()
@@ -58,5 +58,5 @@ class TaskCommentSerializer(serializers.ModelSerializer):
 
     def validate(self, value):
         if not value.get('content').strip():
-            raise serializers.ValidationError("Der Kommentarinhalt darf nicht leer sein.")
+            raise serializers.ValidationError("The comment content must not be empty.")
         return value

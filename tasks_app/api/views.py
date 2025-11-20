@@ -1,11 +1,12 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, views, mixins, status
-from rest_framework.permissions import IsAuthenticated
-from tasks_app.models import Tasks, TaskComments
-from .serializers import TaskSerializer, TaskCommentSerializer
-from .permissions import IsBoardMember, IsTaskOwner, IsBoardOwner, IsTaskCommentAuthor
-from rest_framework.response import Response
+from rest_framework import viewsets, mixins, status
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from ..models import Tasks, TaskComments
+from .permissions import IsBoardMember, IsTaskOwner, IsBoardOwner
+from .serializers import TaskSerializer, TaskCommentSerializer
 
 class TaskViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
     queryset = Tasks.objects.all()

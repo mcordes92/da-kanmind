@@ -1,12 +1,11 @@
-from rest_framework import viewsets, views
-from .serializers import BoardListSerializer, BoardCreateSerializer, BoardDetailSerializer, BoardUpdateSerializer, BoardUpdateResSerializer
-from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
-from boards_app.models import Boards
+from rest_framework import viewsets, views, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
 
+from ..models import Boards
 from .permissions import IsBoardMemberOrOwner
+from .serializers import BoardListSerializer, BoardCreateSerializer, BoardDetailSerializer, BoardUpdateSerializer, BoardUpdateResSerializer
 
 class BoardsViewSet(viewsets.ModelViewSet):
     queryset = Boards.objects.all()
@@ -49,7 +48,7 @@ class BoardsViewSet(viewsets.ModelViewSet):
         board = self.get_object()
 
         if board.owner != request.user:
-            return Response({"detail": "Nur der Eigentümer darf dieses Board löschen."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"detail": "Only the owner is allowed to delete this board."}, status=status.HTTP_403_FORBIDDEN)
 
         board.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -61,7 +60,7 @@ class EmailCheck(views.APIView):
         email = request.query_params.get('email')
 
         if not email:
-            return Response({"detail": "E-Mail-Parameter fehlt."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "Email parameter is missing."}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
             user = User.objects.get(email=email)
@@ -73,4 +72,4 @@ class EmailCheck(views.APIView):
                 "fullname": fullname
             })
         except User.DoesNotExist:
-            return Response({"detail": "Benutzer mit dieser E-Mail existiert nicht."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "User with this email does not exist."}, status=status.HTTP_404_NOT_FOUND)
