@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-pxu-^a!k*+zqnqreums5%oiiknsf3qoixt5j!%n2*rzebgt!x1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["kanmind.apps.srv01.dus.cordesm.de"]
+ALLOWED_HOSTS = []
 
 
 # Application definition
