@@ -6,6 +6,7 @@ from rest_framework.response import Response
 
 from .serializers import RegistrationSerializer, LoginSerializer
 
+# View for user registration with token generation
 class RegistrationView(generics.CreateAPIView):
     serializer_class = RegistrationSerializer
     permission_classes = [AllowAny]
@@ -17,6 +18,7 @@ class RegistrationView(generics.CreateAPIView):
 
         user = serializer.save()
 
+        # Generate or retrieve authentication token for the new user
         token, created = Token.objects.get_or_create(user=user)
 
         response_data = {
@@ -28,6 +30,7 @@ class RegistrationView(generics.CreateAPIView):
 
         return Response(response_data, status=status.HTTP_201_CREATED)
 
+# View for user login with token generation
 class LoginView(mixins.ListModelMixin, generics.GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [AllowAny]
@@ -39,6 +42,7 @@ class LoginView(mixins.ListModelMixin, generics.GenericAPIView):
 
         user = serializer.get()
 
+        # Generate or retrieve authentication token for authenticated user
         token, created = Token.objects.get_or_create(user=user)
 
         response_data = {

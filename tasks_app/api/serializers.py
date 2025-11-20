@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from ..models import Tasks, TaskComments
 
+# Serializer for user data with profile full name
 class UserSerializer(serializers.ModelSerializer):
     fullname = serializers.SerializerMethodField()
 
@@ -13,6 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
     def get_fullname(self, obj):
         return obj.profile.full_name
 
+# Serializer for task with assignee and reviewer validation
 class TaskSerializer(serializers.ModelSerializer):
     assignee_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), source='assignee', required=False, write_only=True)
     reviewer_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), source='reviewer', required=False, write_only=True)
@@ -32,6 +34,7 @@ class TaskSerializer(serializers.ModelSerializer):
     def validate(self, value):
         board = self._get_board(value)
 
+        # Ensure assignee and reviewer are board members
         self._validate_user(value.get('assignee'), board, 'Assignee')
         self._validate_user(value.get('reviewer'), board, 'Reviewer')
         self._prevent_board_change(value)
@@ -45,9 +48,11 @@ class TaskSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(f"The {role} must be a member of the board.")
         
     def _prevent_board_change(self, value):
+        # Prevent changing board after task creation
         if self.instance and 'board' in value and value['board'] != self.instance.board:
             raise serializers.ValidationError("The board of a task cannot be changed.")
         
+# Serializer for task comments with content validation
 class TaskCommentSerializer(serializers.ModelSerializer):
     content = serializers.CharField()
     author = serializers.CharField(source='author.profile.full_name', read_only=True)
@@ -57,6 +62,7 @@ class TaskCommentSerializer(serializers.ModelSerializer):
         fields = ['id', 'created_at', 'author', 'content']
 
     def validate(self, value):
+        # Ensure comment is not empty or whitespace only
         if not value.get('content').strip():
             raise serializers.ValidationError("The comment content must not be empty.")
         return value

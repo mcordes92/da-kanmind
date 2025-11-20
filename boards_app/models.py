@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+# Model representing a Kanban board with owner and members
 class Boards(models.Model):
     title = models.CharField(max_length=255)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="owned_boards")
