@@ -8,14 +8,16 @@ from ..models import Tasks, TaskComments
 from .permissions import IsTaskBoardMember, IsTaskOwner, IsBoardOwner
 from .serializers import TaskSerializer, TaskCommentSerializer
 
-# ViewSet for creating, updating, and deleting tasks
+
 class TaskViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    """ViewSet for creating, updating, and deleting tasks."""
+
     queryset = Tasks.objects.all()
     serializer_class = TaskSerializer
     lookup_field = "pk"
 
     def get_permissions(self):
-        # Return dynamic permissions based on action type
+        """Return dynamic permissions based on action type."""
         if self.action == 'create':
             permission_classes = [ IsAuthenticated, IsTaskBoardMember ]
         elif self.action in ['update', 'partial_update']:
@@ -27,40 +29,51 @@ class TaskViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, mixins.Destr
         return [permission() for permission in permission_classes]
     
     def partial_update(self, request, *args, **kwargs):
+        """Update a task partially.
+
+        Remove comments_count from response to avoid serialization issues.
+        """
         response = super().partial_update(request, *args, **kwargs)
 
-        # Remove comments_count from response to avoid serialization issues
         if isinstance(response.data, dict) and 'comments_count' in response.data:
             response.data.pop('comments_count')
             
         return response
 
-# ViewSet for listing, creating, and deleting task comments
+
 class TaskCommentViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    """ViewSet for listing, creating, and deleting task comments."""
+
     queryset = TaskComments.objects.all()
     permission_classes = [ IsAuthenticated ]
     serializer_class = TaskCommentSerializer
     lookup_field = "pk"
 
     def get_queryset(self):
+        """Get comments for a task.
+
+        Only board owners and members can view task comments.
+        """
         task_id = self.kwargs.get('task_pk')
         task = get_object_or_404(Tasks.objects.select_related('board'), pk=task_id)
         user = self.request.user
         board = task.board
 
-        # Only board owners and members can view task comments
         if user != board.owner and not user in board.members.all():
             raise PermissionDenied("You do not have permission to view comments for this task.")
                 
         return TaskComments.objects.filter(task_id=task_id).select_related('author')
     
     def create(self, request, *args, **kwargs):
+        """Create a new comment on a task.
+
+        Only board owners and members can add comments.
+        """
         task_id = kwargs.get('task_pk')
         task = get_object_or_404(Tasks.objects.select_related('board'), pk=task_id)
         user = request.user
         board = task.board
 
-        # Only board owners and members can add comments
         if user != board.owner and not user in board.members.all():
             raise PermissionDenied("You do not have permission to add comments to this task.")
         
@@ -79,12 +92,15 @@ class TaskCommentViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.
         return Response(response, status=201)
     
     def destroy(self, request, *args, **kwargs):
+        """Delete a comment.
+
+        Only comment author can delete their comment.
+        """
         task_id = kwargs.get('task_pk')
         comment_id = kwargs.get('pk')
         
         comment = get_object_or_404(TaskComments.objects.select_related('author', 'task'), pk=comment_id, task_id=task_id)
 
-        # Only comment author can delete their comment
         if self.request.user != comment.author:
             raise PermissionDenied("You do not have permission to delete this comment.")
         
@@ -92,8 +108,9 @@ class TaskCommentViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-# ViewSet for listing tasks assigned to or reviewed by the user
 class TaskAssignedOrReviewingSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """ViewSet for listing tasks assigned to or reviewed by the user."""
+
     permission_classes = [IsAuthenticated]
     serializer_class = TaskSerializer
 
@@ -105,7 +122,7 @@ class TaskAssignedOrReviewingSet(mixins.ListModelMixin, viewsets.GenericViewSet)
         return super().get_dispatch(request, *args, **kwargs)
     
     def get_queryset(self):
-        # Filter tasks based on mode: assigned or reviewing
+        """Filter tasks based on mode: assigned or reviewing."""
         qs = Tasks.objects.all()
         if self.mode == "assigned-to-me":
             qs = qs.filter(assignee=self.request.user)

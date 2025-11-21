@@ -7,14 +7,16 @@ from ..models import Boards
 from .permissions import IsBoardMemberOrOwner
 from .serializers import BoardListSerializer, BoardCreateSerializer, BoardDetailSerializer, BoardUpdateSerializer, BoardUpdateResSerializer
 
-# ViewSet for handling CRUD operations on boards
+
 class BoardsViewSet(viewsets.ModelViewSet):
+    """ViewSet for handling CRUD operations on boards."""
+
     queryset = Boards.objects.all()
     permission_classes = [IsAuthenticated, IsBoardMemberOrOwner]
     lookup_field = "pk"
 
     def get_serializer_class(self):
-        # Return appropriate serializer based on action type
+        """Return appropriate serializer based on action type."""
         if self.action == "list":
             return BoardListSerializer
         elif self.action == "create":
@@ -23,9 +25,8 @@ class BoardsViewSet(viewsets.ModelViewSet):
             return BoardUpdateSerializer
         return BoardDetailSerializer
 
-
     def get_queryset(self):
-        # Return only boards where user is owner or member
+        """Return only boards where user is owner or member."""
         user = self.request.user
         return (Boards.objects.filter(owner=user) | Boards.objects.filter(members=user)).distinct()
 
@@ -48,26 +49,31 @@ class BoardsViewSet(viewsets.ModelViewSet):
         return self.update(request, *args, **kwargs)
     
     def destroy(self, request, *args, **kwargs):
+        """Delete a board.
+
+        Only board owner can delete the board.
+        """
         board = self.get_object()
 
-        # Only board owner can delete the board
         if board.owner != request.user:
             return Response({"detail": "Only the owner is allowed to delete this board."}, status=status.HTTP_403_FORBIDDEN)
 
         board.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-      
-# View for checking user existence by email
+
+
 class EmailCheck(views.APIView):
+    """View for checking user existence by email."""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """Retrieve user profile information by email."""
         email = request.query_params.get('email')
 
         if not email:
             return Response({"detail": "Email parameter is missing."}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Retrieve user profile information by email
         try:
             user = User.objects.get(email=email)
             fullname = user.profile.full_name

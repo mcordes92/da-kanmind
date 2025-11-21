@@ -5,8 +5,10 @@ from ..models import Boards
 from tasks_app.api.serializers import TaskSerializer
 from tasks_app.models import Tasks
 
-# Serializer for board list view with computed statistics
+
 class BoardListSerializer(serializers.ModelSerializer):
+    """Serializer for board list view with computed statistics."""
+
     member_count = serializers.SerializerMethodField()
     ticket_count = serializers.SerializerMethodField()
     tasks_to_do_count = serializers.SerializerMethodField()
@@ -36,9 +38,11 @@ class BoardListSerializer(serializers.ModelSerializer):
 
     def get_tasks_high_prio_count(self, obj):
         return Tasks.objects.filter(board=obj, priority='high').count()
-    
-# Serializer for creating a new board with member assignments
+
+
 class BoardCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating a new board with member assignments."""
+
     members = serializers.ListField(
         child=serializers.IntegerField(), write_only=True
     )
@@ -48,7 +52,10 @@ class BoardCreateSerializer(serializers.ModelSerializer):
         fields = ['title', 'members']
 
     def create(self, validated_data):
-        # Extract member IDs and assign current user as board owner
+        """Create a new board with members.
+
+        Extract member IDs and assign current user as board owner.
+        """
         members = validated_data.pop("members", [])
         owner = self.context["request"].user
         board = Boards.objects.create(owner=owner, **validated_data)
@@ -56,9 +63,11 @@ class BoardCreateSerializer(serializers.ModelSerializer):
         board.members.set(users)
 
         return board
-    
-# Serializer for user data with profile full name
+
+
 class UserSerializer(serializers.ModelSerializer):
+    """Serializer for user data with profile full name."""
+
     fullname = serializers.SerializerMethodField()
 
     class Meta:
@@ -67,9 +76,11 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_fullname(self, obj):
         return obj.profile.full_name
-    
-# Serializer for detailed board view including members and tasks
+
+
 class BoardDetailSerializer(serializers.ModelSerializer):
+    """Serializer for detailed board view including members and tasks."""
+
     owner_id = serializers.ReadOnlyField(source='owner.id')
     members = UserSerializer(many=True, read_only=True)
     tasks = serializers.SerializerMethodField()
@@ -83,8 +94,10 @@ class BoardDetailSerializer(serializers.ModelSerializer):
         tasks = TaskSerializer(qs, many=True).data
         return tasks
 
-# Serializer for updating board title and members
+
 class BoardUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating board title and members."""
+
     members = serializers.ListField(
         child=serializers.IntegerField(), write_only=True, required=False
     )
@@ -95,7 +108,7 @@ class BoardUpdateSerializer(serializers.ModelSerializer):
         fields = ['title', 'members']
 
     def validate_members(self, value):
-        # Ensure all provided user IDs exist in database
+        """Ensure all provided user IDs exist in database."""
         valid_members = User.objects.filter(id__in=value)
         missing_ids = set(value) - set(valid_members.values_list('id', flat=True))
 
@@ -118,9 +131,11 @@ class BoardUpdateSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
-    
-# Serializer for board update response with owner and member details
+
+
 class BoardUpdateResSerializer(serializers.ModelSerializer):
+    """Serializer for board update response with owner and member details."""
+
     owner_data = UserSerializer(source='owner', read_only=True)
     members_data = UserSerializer(source='members', many=True, read_only=True)
 

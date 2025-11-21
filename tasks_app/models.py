@@ -3,18 +3,22 @@ from django.db import models
 
 from boards_app.models import Boards
 
-# Define available task status options
+
 def choices_status():
+    """Define available task status options."""
     status = ['to-do', 'in-progress', 'review', 'done']
     return status
 
-# Define available task priority levels
+
 def choices_priority():
+    """Define available task priority levels."""
     priority = ['low', 'medium', 'high']
     return priority
 
-# Model representing a task within a board
+
 class Tasks(models.Model):
+    """Model representing a task within a board."""
+
     board = models.ForeignKey(Boards, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -27,8 +31,10 @@ class Tasks(models.Model):
     def __str__(self):
         return f"{self.title} - {self.board.title}"
 
-# Model representing a comment on a task
+
 class TaskComments(models.Model):
+    """Model representing a comment on a task."""
+
     task = models.ForeignKey(Tasks, on_delete=models.CASCADE, related_name="comments")
     created_at = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE)

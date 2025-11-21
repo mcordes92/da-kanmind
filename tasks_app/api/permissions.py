@@ -4,8 +4,9 @@ from rest_framework.exceptions import NotFound
 from boards_app.models import Boards
 from tasks_app.models import Tasks
 
-# Permission allowing only the board owner to perform actions
+
 class IsBoardOwner(BasePermission):
+    """Permission allowing only the board owner to perform actions."""
 
     def has_object_permission(self, request, view, obj):
         return obj.board.owner == request.user
@@ -43,15 +44,17 @@ class IsTaskBoardMember(BasePermission):
             raise NotFound(detail="Board not found.")
         
         return board.owner == request.user or request.user in board.members.all()
-    
-# Permission allowing only the task assignee to perform actions
+
+
 class IsTaskOwner(BasePermission):
+    """Permission allowing only the task assignee to perform actions."""
 
     def has_object_permission(self, request, view, obj):
         return obj.assignee_id == request.user
-    
-# Permission restricting access to comment authors only
+
+
 class IsTaskCommentAuthor(BasePermission):
+    """Permission restricting access to comment authors only."""
 
     def has_object_permission(self, request, view, obj):
         return obj.author == request.user

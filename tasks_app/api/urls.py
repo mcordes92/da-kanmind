@@ -1,17 +1,15 @@
+"""URL patterns for task and comment endpoints."""
 from django.urls import path, include
 from rest_framework_nested import routers
 
 from .views import TaskViewSet, TaskCommentViewSet, TaskAssignedOrReviewingSet
 
-# Register tasks viewset with simple router
 router = routers.SimpleRouter()
 router.register(r'tasks', TaskViewSet)
 
-# Create nested router for task comments
 comments_router = routers.NestedSimpleRouter(router, r'tasks', lookup='task')
 comments_router.register(r'comments', TaskCommentViewSet, basename='task-comments')
 
-# URL patterns for task and comment endpoints
 urlpatterns = [
     path('tasks/assigned-to-me/', TaskAssignedOrReviewingSet.as_view({"get": "list"}, mode="assigned-to-me"), name='tasks-assigned-to-me'),
     path('tasks/reviewing/', TaskAssignedOrReviewingSet.as_view({"get": "list"}, mode="reviewing"), name='tasks-reviewing'),

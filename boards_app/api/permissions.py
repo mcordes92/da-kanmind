@@ -1,8 +1,9 @@
 from rest_framework.permissions import BasePermission
 from rest_framework.exceptions import NotFound
 
-# Permission allowing access only to board owners or members
+
 class IsBoardMemberOrOwner(BasePermission):
+    """Permission allowing access only to board owners or members."""
 
     def has_object_permission(self, request, view, obj):
         return obj.owner == request.user or request.user in obj.members.all()
@@ -24,8 +25,9 @@ class IsBoardMemberOrOwner(BasePermission):
                 
         return request.user and request.user.is_authenticated
 
-# Permission restricting access to board owners only
+
 class IsBoardOwner(BasePermission):
+    """Permission restricting access to board owners only."""
 
     def has_object_permission(self, request, view, obj):
         return obj.owner == request.user
