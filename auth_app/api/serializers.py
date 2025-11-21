@@ -72,6 +72,6 @@ class LoginSerializer(serializers.ModelSerializer):
 
         # Verify password matches the hashed password in database
         if not user.check_password(pw):
-            raise serializers.ValidationError("Incorrect password")
+            raise serializers.ValidationError({"email": email, "password": "Incorrect password"})
     
         return user

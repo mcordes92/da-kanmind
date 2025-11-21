@@ -1,4 +1,5 @@
 from rest_framework.permissions import BasePermission
+from rest_framework.exceptions import NotFound
 
 from boards_app.models import Boards
 from tasks_app.models import Tasks
@@ -9,35 +10,39 @@ class IsBoardOwner(BasePermission):
     def has_object_permission(self, request, view, obj):
         return obj.board.owner == request.user
 
-# Permission verifying user is a board member or owner
-class IsBoardMember(BasePermission):
-
+class IsTaskBoardMember(BasePermission):
+    """
+    Permission that checks if user is member or owner of the board that the task belongs to
+    """
     def has_permission(self, request, view):
-        board = None
-
-        data = getattr(request, "data", {}) or {}
-
-        board_id = data.get("board")
-
-        if board_id:
-            try:
-                board = Boards.objects.get(id=board_id)
-            except Boards.DoesNotExist:
-                return False
-            
-        # Fall back to determining board from task if board_id not in request
-        if not board:
-            task_id = view.kwargs.get("pk") or view.kwargs.get("task_pk")
-            if task_id:
-                try:
-                    board = Tasks.objects.get(pk=task_id).board
-                except Tasks.DoesNotExist:
-                    return False
-                
-        if not board:
+        if not request.user or not request.user.is_authenticated:
             return False
         
-        return board.members.filter(id=request.user.id).exists() or board.owner == request.user
+        # Bei POST: board_id aus request.data prüfen
+        if view.action == 'create':
+            board_id = request.data.get('board')
+            
+            if not board_id:
+                return True  # Wird später vom Serializer validiert
+            
+            try:
+                board = Boards.objects.get(pk=board_id)
+            except Boards.DoesNotExist:
+                raise NotFound(detail="Board not found.")
+            
+            # Board existiert, aber User hat keine Berechtigung
+            if board.owner != request.user and request.user not in board.members.all():
+                return False
+        
+        return True
+    
+    def has_object_permission(self, request, view, obj):        
+        try:
+            board = Boards.objects.get(pk=obj.board.id)
+        except Boards.DoesNotExist:
+            raise NotFound(detail="Board not found.")
+        
+        return board.owner == request.user or request.user in board.members.all()
     
 # Permission allowing only the task assignee to perform actions
 class IsTaskOwner(BasePermission):

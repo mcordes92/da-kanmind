@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from ..models import Tasks, TaskComments
-from .permissions import IsBoardMember, IsTaskOwner, IsBoardOwner
+from .permissions import IsTaskBoardMember, IsTaskOwner, IsBoardOwner
 from .serializers import TaskSerializer, TaskCommentSerializer
 
 # ViewSet for creating, updating, and deleting tasks
@@ -17,9 +17,9 @@ class TaskViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, mixins.Destr
     def get_permissions(self):
         # Return dynamic permissions based on action type
         if self.action == 'create':
-            permission_classes = [ IsAuthenticated, IsBoardMember ]
+            permission_classes = [ IsAuthenticated, IsTaskBoardMember ]
         elif self.action in ['update', 'partial_update']:
-            permission_classes = [ IsAuthenticated, IsBoardMember ]
+            permission_classes = [ IsAuthenticated, IsTaskBoardMember ]
         elif self.action == 'destroy':
             permission_classes = [ IsAuthenticated, (IsTaskOwner | IsBoardOwner) ]
         else:
